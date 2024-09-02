@@ -1,4 +1,4 @@
-package com.itgenius.springboot_store_api.models
+package com.example.spring_api.models
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import jakarta.persistence.*
