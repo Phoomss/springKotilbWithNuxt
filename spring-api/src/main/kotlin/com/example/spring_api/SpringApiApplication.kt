@@ -9,3 +9,4 @@ class SpringApiApplication
 fun main(args: Array<String>) {
 	runApplication<SpringApiApplication>(*args)
 }
+
