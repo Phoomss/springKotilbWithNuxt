@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Products", description = "APIs for managing products")
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/v1/products")
 class ProductController(private val productService: ProductService) {
     @Operation(summary = "Get all products", description = "Get all products from database ")
     @GetMapping

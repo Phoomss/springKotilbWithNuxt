@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Authenticate", description = "Authenticate API")
 @RestController
-@RequestMapping("/api/authenticate")
+@RequestMapping("/api/v1/authenticate")
 class UserController(
     private val userService: UserService
 ) {
@@ -23,11 +23,14 @@ class UserController(
         return try {
             val user = userService.registerUser(model.username, model.email, model.password)
             ResponseEntity.ok(ResponseModel("Success", "User registered successfully"))
+
         } catch (e: IllegalStateException) {
             ResponseEntity.badRequest().body(ResponseModel("Error", e.message ?: "Registration failed"))
+
         } catch (e: IllegalStateException) {
             ResponseEntity.internalServerError()
                 .body(ResponseModel("Error", e.message ?: "Registration failed due to system configuration"))
+
         } catch (e: Exception) {
             ResponseEntity.internalServerError().body(ResponseModel("Error", "User creation failed: ${e.message}"))
         }
@@ -39,11 +42,14 @@ class UserController(
         return try {
             val user = userService.registerManager(model.username, model.email, model.password)
             ResponseEntity.ok(ResponseModel("Success", "Manager registered successfully"))
+
         } catch (e: IllegalStateException) {
             ResponseEntity.badRequest().body(ResponseModel("Error", e.message ?: "Registration failed"))
+
         } catch (e: IllegalStateException) {
             ResponseEntity.internalServerError()
                 .body(ResponseModel("Error", e.message ?: "Registration failed due to system configuration"))
+
         } catch (e: Exception) {
             ResponseEntity.internalServerError().body(ResponseModel("Error", "Manager creation failed: ${e.message}"))
         }
@@ -55,11 +61,14 @@ class UserController(
         return try {
             val user = userService.registerAdmin(model.username, model.email, model.password)
             ResponseEntity.ok(ResponseModel("Success", "Admin registered successfully"))
+
         } catch (e: IllegalStateException) {
             ResponseEntity.badRequest().body(ResponseModel("Error", e.message ?: "Registration failed"))
+
         } catch (e: IllegalStateException) {
             ResponseEntity.internalServerError()
                 .body(ResponseModel("Error", e.message ?: "Registration failed due to system configuration"))
+
         } catch (e: Exception) {
             ResponseEntity.internalServerError().body(ResponseModel("Error", "Admin creation failed: ${e.message}"))
         }
