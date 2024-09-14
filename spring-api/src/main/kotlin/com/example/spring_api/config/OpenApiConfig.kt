@@ -2,6 +2,7 @@ package com.example.spring_api.config
 
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
+import io.swagger.v3.oas.models.tags.Tag
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -20,8 +21,9 @@ class OpenApiConfig {
 //            custom tags api
             .tags(
                 listOf(
-                    io.swagger.v3.oas.models.tags.Tag().name("Categories").description("This APIs from managing categories"),
-                    io.swagger.v3.oas.models.tags.Tag().name("Products").description("This APIs from managing products")
+                    Tag().name("Categories").description("This APIs from managing categories"),
+                    Tag().name("Products").description("This APIs from managing products"),
+                    Tag().name("Authenticate").description("This APIs from managing authenticate")
                 )
             )
     }
