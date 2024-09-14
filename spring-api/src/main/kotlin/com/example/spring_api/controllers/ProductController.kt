@@ -4,18 +4,14 @@ import com.example.spring_api.models.Product
 import com.example.spring_api.services.ProductService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 // and == 1 user have 2 role
 @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('MANAGER')")
@@ -23,16 +19,35 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/products")
 class ProductController(private val productService: ProductService) {
-    @Operation(summary = "Get all products", description = "Get all products from database ")
-    @GetMapping
-    fun getAllProducts() = productService.getAllProducts()
+//    @Operation(summary = "Get all products", description = "Get all products from database ")
+//    @GetMapping
+//    fun getAllProducts() = productService.getAllProducts()
 
-    @Operation(summary = "Get product by ID", description = "Get product by ID from database")
+    @Operation(summary = "Get all products", description = "Get all products from database")
+    @GetMapping
+    fun getAllProducts(
+        @RequestParam(value = "page", defaultValue = "1") page: Int,
+        @RequestParam(value = "limit", defaultValue = "100") limit: Int,
+        @RequestParam(value = "searchQuery", required = false) searchQuery: String?,
+        @RequestParam(value = "selectedCategory", required = false) selectedCategory: Int?
+    ): ResponseEntity<Map<String, Any>> {
+        val pageable: Pageable = PageRequest.of(page - 1, limit)
+        val productsPage: Page<Product> = productService.getAllProducts(searchQuery, selectedCategory, pageable)
+
+        val response = mapOf(
+            "total" to productsPage.totalElements,
+            "products" to productsPage.content
+        )
+
+        return ResponseEntity.ok(response)
+    }
+
+    @Operation(summary = "Get product by id", description = "Get product by id from database")
     @GetMapping("/{id}")
-    fun getProductById(@PathVariable id: Int): ResponseEntity<Product> {
-        val product = productService.getProductById(id)
+    fun getProductById(@PathVariable id: Int): ResponseEntity<Map<String, Any>> {
+        val product = productService.getProductByIdWithCategory(id)
         return product.map { ResponseEntity.ok(it) }
-            .orElseGet { ResponseEntity(HttpStatus.NOT_FOUND) }
+            .orElseGet { ResponseEntity.notFound().build() }
     }
 
     @Operation(summary = "Add new Product", description = "Post product from database")
