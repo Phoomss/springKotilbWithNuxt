@@ -1,7 +1,9 @@
 package com.example.spring_api.config
 
+import com.example.spring_api.filters.JwtRequestFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Lazy
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -16,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
+    @Lazy private val jwtRequestFilter: JwtRequestFilter,
     private val userDetailsService: UserDetailsService,
 ) {
     @Bean
@@ -29,6 +32,10 @@ class SecurityConfig(
                     .requestMatchers("/api/v1/authenticate/**").permitAll()
                     .anyRequest().authenticated()
             }
+            .sessionManagement { session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
+            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter::class.java)
         return http.build()
     }
 

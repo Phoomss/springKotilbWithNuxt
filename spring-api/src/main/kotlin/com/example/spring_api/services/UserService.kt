@@ -66,5 +66,9 @@ class UserService(
         }
     }
 
+//    login
+    fun findByUsername(username: String):User?{
+        return userRepository.findByUsername(username)
+    }
 
 }

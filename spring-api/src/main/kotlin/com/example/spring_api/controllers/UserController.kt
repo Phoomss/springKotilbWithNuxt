@@ -1,11 +1,16 @@
 package com.example.spring_api.controllers
 
+import com.example.spring_api.models.LoginModel
 import com.example.spring_api.models.RegisterModel
 import com.example.spring_api.models.ResponseModel
 import com.example.spring_api.services.UserService
+import com.example.spring_api.utils.JwtUtil
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -15,7 +20,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/authenticate")
 class UserController(
-    private val userService: UserService
+    private val userService: UserService,
+    private val jwtUtil: JwtUtil,
+    private val passwordEncoder: PasswordEncoder
 ) {
     @Operation(summary = "Register user", description = "Register user to database")
     @PostMapping("/register-user")
@@ -73,4 +80,39 @@ class UserController(
             ResponseEntity.internalServerError().body(ResponseModel("Error", "Admin creation failed: ${e.message}"))
         }
     }
+
+    @Operation(summary = "Login", description = "Login to system and get JWT token")
+    @PostMapping("/login")
+    fun login(@RequestBody model: LoginModel): ResponseEntity<ResponseModel> {
+        val user = userService.findByUsername(model.username)
+
+        return if (user != null && passwordEncoder.matches(model.password, user.password)) {
+            val roles = user.roles.map { it.roleName.name }
+            val token = jwtUtil.generateToken(user.username, roles)
+
+            ResponseEntity.ok(
+                ResponseModel(
+                    "Success", "Login successful", mapOf(
+                        "token" to token,
+                        "userName" to user.username,
+                        "email" to user.email,
+                        "roles" to roles
+                    ).toString()
+                )
+            )
+        } else {
+            ResponseEntity.status(401).body(ResponseModel("Error", "Invalid username or password"))
+        }
+    }
+
+    @Operation(summary = "Logout", description = "Logout from the system")
+    @PostMapping("/logout")
+    fun logout(): ResponseEntity<ResponseModel> {
+        val auth: Authentication? = SecurityContextHolder.getContext().authentication
+        if (auth != null) {
+            SecurityContextHolder.clearContext()
+        }
+        return ResponseEntity.ok(ResponseModel("Success", "Logged out successfully"))
+    }
+
 }
