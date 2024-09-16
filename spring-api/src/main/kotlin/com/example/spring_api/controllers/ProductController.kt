@@ -7,11 +7,12 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
+import java.math.BigDecimal
+import java.time.LocalDateTime
 
 // and == 1 user have 2 role
 @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('MANAGER')")
@@ -50,25 +51,62 @@ class ProductController(private val productService: ProductService) {
             .orElseGet { ResponseEntity.notFound().build() }
     }
 
-    @Operation(summary = "Add new Product", description = "Post product from database")
-    @PostMapping("/create")
-    fun createProduct(@RequestBody product: Product): ResponseEntity<Product> {
-        val createProduct = productService.createProduct(product)
-        return ResponseEntity(createProduct, HttpStatus.CREATED)
+    @Operation(summary = "Create product", description = "Create product to database")
+    @PostMapping(consumes = ["multipart/form-data"])
+    fun createProduct(
+        @RequestParam productName: String,
+        @RequestParam unitPrice: BigDecimal,
+        @RequestParam unitInStock: Int,
+        @RequestParam(required = false) productPicture: String?,
+        @RequestParam categoryId: Int,
+        @RequestParam(required = false) createdDate: LocalDateTime?,
+        @RequestParam(required = false) modifiedDate: LocalDateTime?,
+        @RequestParam(required = false) image: MultipartFile?
+    ): ResponseEntity<Product> {
+        val product = Product(
+            productName = productName,
+            unitPrice = unitPrice,
+            unitInStock = unitInStock,
+            productPicture = productPicture,
+            categoryId = categoryId,
+            createdDate = createdDate ?: LocalDateTime.now(),
+            modifiedDate = modifiedDate
+        )
+        val createdProduct = productService.createProduct(product, image)
+        return ResponseEntity.status(201).body(createdProduct)
     }
 
-    @Operation(summary = "Update product by ID", description = "Update product by ID from database")
-    @PutMapping("/{id}")
-    fun updateProduct(@PathVariable id: Int, @RequestBody product: Product): ResponseEntity<Product> {
-        val updateProduct = productService.updateProduct(id, product)
-        return ResponseEntity.ok(updateProduct)
+    @Operation(summary = "Update product", description = "Update product to database")
+    @PutMapping("/{id}", consumes = ["multipart/form-data"])
+    fun updateProduct(
+        @PathVariable id: Int,
+        @RequestParam productName: String,
+        @RequestParam unitPrice: BigDecimal,
+        @RequestParam unitInStock: Int,
+        @RequestParam(required = false) productPicture: String?,
+        @RequestParam categoryId: Int,
+        @RequestParam(required = false) createdDate: LocalDateTime?,
+        @RequestParam(required = false) modifiedDate: LocalDateTime?,
+        @RequestParam(required = false) image: MultipartFile?
+    ): ResponseEntity<Product> {
+        val product = Product(
+            productName = productName,
+            unitPrice = unitPrice,
+            unitInStock = unitInStock,
+            productPicture = productPicture,
+            categoryId = categoryId,
+            createdDate = createdDate ?: LocalDateTime.now(),
+            modifiedDate = modifiedDate
+        )
+        val updatedProduct = productService.updateProduct(id, product, image)
+        return ResponseEntity.ok(updatedProduct)
     }
 
-    @Operation(summary = "Delete product by ID", description = "Delete product by ID from database")
+    @Operation(summary = "Delete product", description = "Delete product from database")
     @DeleteMapping("/{id}")
     fun deleteProduct(@PathVariable id: Int): ResponseEntity<Void> {
-        productService.deleteProdut(id)
-        return ResponseEntity(HttpStatus.NO_CONTENT)
+        productService.deleteProduct(id)
+        return ResponseEntity.noContent().build()
     }
 
 }
