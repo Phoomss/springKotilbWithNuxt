@@ -1,7 +1,8 @@
 package com.example.spring_api.filters
 
+import com.example.spring_api.security.TokenStore
 import com.example.spring_api.utils.JwtUtil
- import jakarta.servlet.FilterChain
+import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Lazy
@@ -15,10 +16,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 @Component
 class JwtRequestFilter(
     @Lazy private val userDetailsService: UserDetailsService,
-    private val jwtUtil: JwtUtil
+    private val jwtUtil: JwtUtil,
+    private val tokenStore: TokenStore
 ) : OncePerRequestFilter() {
 
-    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        filterChain: FilterChain
+    ) {
         val authorizationHeader = request.getHeader("Authorization")
 
         var username: String? = null
@@ -32,7 +38,7 @@ class JwtRequestFilter(
         if (username != null && SecurityContextHolder.getContext().authentication == null) {
             val userDetails = userDetailsService.loadUserByUsername(username)
 
-            if (jwtUtil.validateToken(jwt!!, userDetails)) {
+            if (jwtUtil.validateToken(jwt!!, userDetails) && !tokenStore.isTokenInvalidated(jwt)) {
                 val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.authorities
                 )
